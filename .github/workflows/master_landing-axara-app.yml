@@ -19,28 +19,36 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Node.js version
-        uses: actions/setup-node@v4 
+        uses: actions/setup-node@v4
         with:
           node-version: '22.x'
-          cache: 'npm' 
+          cache: 'npm'
 
       - name: Install dependencies and Build
         run: |
-          npm ci # Menggunakan ci lebih aman dan cepat dari install untuk production
+          npm ci
           npm run build
 
-      - name: Prepare standalone deployment folder
+      - name: Prepare and ZIP standalone deployment
         run: |
+          # 1. Siapkan folder sementara
           mkdir -p deploy_package
+          
+          # 2. Salin semua file (termasuk yang disembunyikan)
           cp -a .next/standalone/. deploy_package/
           cp -a .next/static deploy_package/.next/
           cp -a public deploy_package/
+          
+          # 3. KUNCI JAWABANNYA DI SINI: Kita zip manual!
+          cd deploy_package
+          zip -r ../deploy.zip .
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: deploy_package/ 
+          # HANYA UPLOAD FILE ZIP-NYA SAJA
+          path: deploy.zip 
 
   deploy:
     runs-on: ubuntu-latest
@@ -64,9 +72,9 @@ jobs:
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_F55C5001E9524C57910B31B69B6AF95B }}
 
       - name: 'Deploy to Azure Web App'
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'landing-axara-app'
           slot-name: 'Production'
-          package: .
+          # LANGSUNG DEPLOY FILE ZIP-NYA KE AZURE
+          package: deploy.zip
