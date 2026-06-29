@@ -31,10 +31,10 @@ jobs:
 
       - name: Prepare standalone deployment folder
         run: |
-          mkdir -p deploy_package/.next
-          cp -r .next/standalone/* deploy_package/
-          cp -r .next/static deploy_package/.next/
-          cp -r public deploy_package/
+          mkdir -p deploy_package
+          cp -a .next/standalone/. deploy_package/
+          cp -a .next/static deploy_package/.next/
+          cp -a public deploy_package/
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
